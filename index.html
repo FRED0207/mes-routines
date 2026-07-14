@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Mes Routines</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0d1014">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0d1014; font-family: 'Segoe UI', system-ui, sans-serif; color: #fff; }
+  .app { max-width: 430px; margin: 0 auto; min-height: 100vh; padding-bottom: 120px; }
+
+  .header { background: linear-gradient(160deg, #171d2b, #0d1014); padding: 48px 22px 16px; border-bottom: 1px solid rgba(246,197,56,0.12); display: flex; justify-content: space-between; align-items: flex-start; }
+  .header h1 { font-size: 2.2rem; font-weight: 800; color: #f6c538; }
+  .header p { font-size: 0.72rem; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 5px; }
+  .header-user { text-align: right; }
+  .header-user .name { font-size: 0.78rem; color: rgba(255,255,255,0.6); margin-bottom: 6px; }
+  .btn-logout { background: none; border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.4); font-size: 0.65rem; padding: 5px 10px; border-radius: 8px; cursor: pointer; font-family: inherit; }
+
+  .tabbar { display: flex; border-bottom: 1px solid rgba(255,255,255,0.07); background: #0d1014; position: sticky; top: 0; z-index: 50; }
+  .tabbtn { flex: 1; padding: 14px; text-align: center; background: none; border: none; color: rgba(255,255,255,0.35); font-size: 0.85rem; font-weight: 700; cursor: pointer; font-family: inherit; border-bottom: 2px solid transparent; }
+  .tabbtn.active { color: #f6c538; border-bottom-color: #f6c538; }
+
+  .alert { margin: 14px 16px; padding: 13px 16px; background: #1f1800; border: 1px solid #f6c538; border-radius: 16px; display: flex; align-items: center; gap: 10px; }
+  .alert span { color: #f6c538; font-size: 0.83rem; flex: 1; line-height: 1.5; }
+  .alert button { background: none; border: none; color: rgba(246,197,56,0.4); font-size: 1.1rem; cursor: pointer; }
+
+  .list { padding: 14px 16px; display: flex; flex-direction: column; gap: 14px; }
+
+  .card { background: #161c28; border: 1px solid rgba(255,255,255,0.07); border-radius: 22px; padding: 20px; }
+  .card.done { border-color: rgba(100,220,120,0.3); background: #131c18; }
+  .card.won { border-color: rgba(246,197,56,0.4); background: #1c1800; }
+
+  .card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; }
+  .card-left { display: flex; align-items: center; gap: 12px; }
+  .card-emoji { font-size: 1.8rem; }
+  .card-name { font-size: 1rem; font-weight: 700; }
+  .card-sub { font-size: 0.7rem; color: rgba(255,255,255,0.35); margin-top: 3px; }
+
+  .check-btn { width: 46px; height: 46px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.04); font-size: 1.3rem; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: rgba(255,255,255,0.3); transition: all .2s; }
+  .check-btn.checked { border-color: #64dc78; background: rgba(100,220,120,0.12); color: #64dc78; }
+
+  .won-badge { display: inline-flex; align-items: center; gap: 5px; background: rgba(246,197,56,0.12); border: 1px solid rgba(246,197,56,0.35); color: #f6c538; font-size: 0.68rem; font-weight: 700; padding: 5px 12px; border-radius: 99px; text-transform: uppercase; }
+
+  .prog-row { display: flex; justify-content: space-between; font-size: 0.72rem; margin-bottom: 7px; }
+  .prog-streak { color: #f6c538; font-weight: 700; }
+  .prog-goal { color: rgba(255,255,255,0.3); }
+  .prog-bg { height: 7px; background: rgba(255,255,255,0.07); border-radius: 99px; overflow: hidden; margin-bottom: 14px; }
+  .prog-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, #f6c538, #ff7e42); transition: width .5s ease; }
+  .prog-fill.green { background: linear-gradient(90deg, #64dc78, #2fd3a0); }
+
+  .reward-box { display: flex; align-items: center; gap: 10px; background: rgba(246,197,56,0.05); border: 1px solid rgba(246,197,56,0.1); border-radius: 12px; padding: 11px 14px; }
+  .reward-label { font-size: 0.68rem; color: rgba(255,255,255,0.35); margin-bottom: 2px; }
+  .reward-value { font-size: 0.88rem; color: #f6c538; font-weight: 700; }
+
+  .card-footer { display: flex; gap: 8px; margin-top: 12px; justify-content: flex-end; }
+  .btn-sm { background: none; border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.35); font-size: 0.68rem; padding: 5px 12px; border-radius: 8px; cursor: pointer; font-family: inherit; }
+  .btn-sm.del:active { color: #ff6b6b; }
+  .btn-join { width: 100%; padding: 12px; border-radius: 12px; border: none; background: linear-gradient(135deg, #f6c538, #ff7e42); color: #000; font-size: 0.85rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+
+  .empty { text-align: center; padding: 70px 24px; color: rgba(255,255,255,0.2); }
+  .empty .e { font-size: 3rem; margin-bottom: 14px; }
+  .empty p { font-size: 0.9rem; line-height: 1.7; }
+
+  .fab { position: fixed; bottom: 88px; right: 24px; width: 62px; height: 62px; border-radius: 50%; background: linear-gradient(135deg, #f6c538, #ff7e42); border: none; font-size: 2rem; cursor: pointer; box-shadow: 0 8px 28px rgba(246,197,56,0.4); display: flex; align-items: center; justify-content: center; z-index: 100; }
+
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 200; display: flex; align-items: flex-end; }
+  .sheet { background: #161c28; border-radius: 28px 28px 0 0; padding: 28px 22px 50px; width: 100%; max-height: 92vh; overflow-y: auto; border: 1px solid rgba(255,255,255,0.08); border-bottom: none; }
+  .sheet h2 { font-size: 1.7rem; font-weight: 800; color: #f6c538; margin-bottom: 22px; }
+
+  .field { margin-bottom: 18px; }
+  .field label { display: block; font-size: 0.68rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; margin-bottom: 8px; }
+  .field input { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 13px 16px; color: #fff; font-size: 0.95rem; font-family: inherit; outline: none; }
+  .field input:focus { border-color: rgba(246,197,56,0.5); }
+  .field input::placeholder { color: rgba(255,255,255,0.2); }
+
+  .emoji-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 9px; }
+  .emoji-btn { aspect-ratio: 1; border-radius: 12px; border: 2px solid transparent; background: rgba(255,255,255,0.05); font-size: 1.5rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .emoji-btn.sel { border-color: #f6c538; background: rgba(246,197,56,0.12); }
+
+  .sheet-actions { display: flex; gap: 10px; margin-top: 26px; }
+  .btn-cancel { flex: 1; padding: 14px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.1); background: transparent; color: rgba(255,255,255,0.4); font-size: 0.9rem; cursor: pointer; font-family: inherit; }
+  .btn-save { flex: 2; padding: 14px; border-radius: 14px; border: none; background: linear-gradient(135deg, #f6c538, #ff7e42); color: #000; font-size: 0.9rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .btn-save:disabled { opacity: 0.35; cursor: default; }
+
+  .celeb-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 300; display: flex; align-items: center; justify-content: center; padding: 28px; }
+  .celeb-card { background: linear-gradient(150deg, #1c1800, #2a2000); border: 2px solid #f6c538; border-radius: 28px; padding: 44px 28px; text-align: center; max-width: 340px; width: 100%; }
+  .celeb-icon { font-size: 4rem; margin-bottom: 14px; }
+  .celeb-card h2 { font-size: 2rem; font-weight: 800; color: #f6c538; margin-bottom: 8px; }
+  .celeb-card p { color: rgba(255,255,255,0.5); font-size: 0.83rem; margin-bottom: 4px; }
+  .celeb-name { color: #fff !important; font-weight: 700; font-size: 1rem !important; margin-bottom: 20px !important; }
+  .celeb-reward { background: rgba(246,197,56,0.1); border: 1px solid rgba(246,197,56,0.3); border-radius: 14px; padding: 16px; margin: 16px 0 24px; }
+  .celeb-reward .rl { font-size: 0.68rem; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 5px; }
+  .celeb-reward .rv { font-size: 1.2rem; color: #f6c538; font-weight: 700; }
+  .btn-claim { width: 100%; padding: 15px; border-radius: 14px; border: none; background: linear-gradient(135deg, #f6c538, #ff7e42); color: #000; font-size: 0.95rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+
+  .lb { margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.06); }
+  .lb-title { font-size: 0.68rem; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; }
+  .lb-row { display: flex; align-items: center; gap: 10px; font-size: 0.8rem; padding: 5px 0; }
+  .lb-rank { width: 18px; color: rgba(255,255,255,0.3); font-weight: 700; }
+  .lb-name { flex: 1; color: rgba(255,255,255,0.75); }
+  .lb-name.me { color: #f6c538; font-weight: 700; }
+  .lb-streak { color: #f6c538; font-weight: 700; }
+
+  .auth-screen { position: fixed; inset: 0; background: #0d1014; z-index: 500; display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .auth-box { max-width: 380px; width: 100%; }
+  .auth-box h1 { font-size: 1.9rem; font-weight: 800; color: #f6c538; margin-bottom: 6px; text-align: center; }
+  .auth-box .sub { text-align: center; color: rgba(255,255,255,0.35); font-size: 0.78rem; margin-bottom: 28px; }
+  .auth-tabs { display: flex; gap: 8px; margin-bottom: 22px; }
+  .auth-tab { flex: 1; padding: 10px; text-align: center; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: transparent; color: rgba(255,255,255,0.4); font-size: 0.82rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .auth-tab.active { border-color: #f6c538; color: #f6c538; background: rgba(246,197,56,0.08); }
+  .auth-err { color: #ff6b6b; font-size: 0.78rem; margin-bottom: 14px; min-height: 1em; }
+  .auth-loading { text-align: center; color: rgba(255,255,255,0.3); font-size: 0.85rem; }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div id="authScreen" class="auth-screen hidden">
+  <div class="auth-box">
+    <h1>💪 Mes Routines</h1>
+    <p class="sub">Connecte-toi pour suivre tes routines et rejoindre des défis</p>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tabLogin" onclick="switchAuthTab('login')">Connexion</button>
+      <button class="auth-tab" id="tabSignup" onclick="switchAuthTab('signup')">Inscription</button>
+    </div>
+    <div class="field hidden" id="fieldName">
+      <label>Ton prénom / pseudo</label>
+      <input id="authName" type="text" placeholder="Ex : Fred">
+    </div>
+    <div class="field">
+      <label>E-mail</label>
+      <input id="authEmail" type="email" placeholder="ton@email.com">
+    </div>
+    <div class="field">
+      <label>Mot de passe</label>
+      <input id="authPassword" type="password" placeholder="6 caractères minimum">
+    </div>
+    <div class="auth-err" id="authErr"></div>
+    <button class="btn-save" style="width:100%" id="authSubmitBtn" onclick="submitAuth()">Se connecter</button>
+    <p class="auth-loading hidden" id="authLoading">Chargement...</p>
+  </div>
+</div>
+
+<div class="app hidden" id="mainApp">
+  <div class="header">
+    <div>
+      <h1>💪 Mes Routines</h1>
+      <p id="dateLabel"></p>
+    </div>
+    <div class="header-user">
+      <div class="name" id="userNameLabel"></div>
+      <button class="btn-logout" onclick="doLogout()">Déconnexion</button>
+    </div>
+  </div>
+
+  <div class="tabbar">
+    <button class="tabbtn active" id="tabBtnRoutines" onclick="switchTab('routines')">🏃 Mes routines</button>
+    <button class="tabbtn" id="tabBtnDefis" onclick="switchTab('defis')">🎯 Défis</button>
+  </div>
+
+  <div id="alert" class="alert hidden">
+    <span>🔔</span>
+    <span>Tu as des routines à cocher aujourd'hui !</span>
+    <button onclick="document.getElementById('alert').classList.add('hidden')">✕</button>
+  </div>
+
+  <div id="tabRoutines">
+    <div class="list" id="list">
+      <div class="empty">
+        <div class="e">🌱</div>
+        <p>Aucune routine pour l'instant.<br>Appuie sur <strong>+</strong> pour en créer une !</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="tabDefis" class="hidden">
+    <div class="list" id="challengesList">
+      <div class="empty">
+        <div class="e">🎯</div>
+        <p>Chargement des défis...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button class="fab hidden" id="fabBtn" onclick="fabAction()">+</button>
+
+<!-- Modal ajout routine -->
+<div id="overlay" class="overlay hidden" onclick="if(event.target===this)closeModal()">
+  <div class="sheet">
+    <h2>✨ Nouvelle Routine</h2>
+    <div class="field">
+      <label>Icône</label>
+      <div class="emoji-grid" id="emojiGrid"></div>
+    </div>
+    <div class="field">
+      <label>Nom de la routine</label>
+      <input id="inputName" type="text" placeholder="Ex : 5 min de gainage" oninput="checkForm()">
+    </div>
+    <div class="field">
+      <label>Objectif (jours consécutifs)</label>
+      <input id="inputDays" type="number" min="1" max="365" value="7">
+    </div>
+    <div class="field">
+      <label>Récompense à la clé 🎁</label>
+      <input id="inputReward" type="text" placeholder="Ex : Restaurant japonais" oninput="checkForm()">
+    </div>
+    <div class="sheet-actions">
+      <button class="btn-cancel" onclick="closeModal()">Annuler</button>
+      <button class="btn-save" id="btnSave" disabled onclick="addRoutine()">Créer ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal creation defi -->
+<div id="challengeOverlay" class="overlay hidden" onclick="if(event.target===this)closeChallengeModal()">
+  <div class="sheet">
+    <h2>🎯 Nouveau Défi</h2>
+    <div class="field">
+      <label>Icône</label>
+      <div class="emoji-grid" id="challengeEmojiGrid"></div>
+    </div>
+    <div class="field">
+      <label>Nom du défi</label>
+      <input id="challengeName" type="text" placeholder="Ex : 1 mois sans tabac" oninput="checkChallengeForm()">
+    </div>
+    <div class="field">
+      <label>Durée (jours)</label>
+      <input id="challengeDays" type="number" min="1" max="365" value="30">
+    </div>
+    <div class="sheet-actions">
+      <button class="btn-cancel" onclick="closeChallengeModal()">Annuler</button>
+      <button class="btn-save" id="btnSaveChallenge" disabled onclick="createChallenge()">Créer ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- Celebration -->
+<div id="celebOverlay" class="celeb-overlay hidden">
+  <div class="celeb-card">
+    <div class="celeb-icon">🏆</div>
+    <h2>Bravo !</h2>
+    <p id="celebSub">Tu as tenu ton objectif pour</p>
+    <p class="celeb-name" id="celebName"></p>
+    <div class="celeb-reward">
+      <div class="rl" id="celebRewardLabel">Ta récompense</div>
+      <div class="rv" id="celebReward"></div>
+    </div>
+    <button class="btn-claim" onclick="closeCeleb()">Réclamer ma récompense 🎉</button>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script>
+  // ---------- Firebase ----------
+  const firebaseConfig = {
+    apiKey: "AIzaSyCWHwK6URbZihXGvVtWBJtvhZSQqoqi5GY",
+    authDomain: "mes-routines.firebaseapp.com",
+    projectId: "mes-routines",
+    storageBucket: "mes-routines.firebasestorage.app",
+    messagingSenderId: "61208002672",
+    appId: "1:61208002672:web:045ab6d5f1c94556c474b5",
+    measurementId: "G-4G13DX5GJC"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  let currentUser = null;
+  let currentUserName = "";
+  let activeTab = "routines";
+  let challengesUnsub = null;
+  let latestChallenges = [];
+
+  // ---------- Auth UI ----------
+  let authMode = "login";
+  function switchAuthTab(mode) {
+    authMode = mode;
+    document.getElementById("tabLogin").classList.toggle("active", mode === "login");
+    document.getElementById("tabSignup").classList.toggle("active", mode === "signup");
+    document.getElementById("fieldName").classList.toggle("hidden", mode === "login");
+    document.getElementById("authSubmitBtn").textContent = mode === "login" ? "Se connecter" : "Créer mon compte";
+    document.getElementById("authErr").textContent = "";
+  }
+
+  function submitAuth() {
+    const email = document.getElementById("authEmail").value.trim();
+    const password = document.getElementById("authPassword").value;
+    const name = document.getElementById("authName").value.trim();
+    const errBox = document.getElementById("authErr");
+    errBox.textContent = "";
+
+    if (!email || !password) { errBox.textContent = "Remplis e-mail et mot de passe."; return; }
+    if (authMode === "signup" && !name) { errBox.textContent = "Choisis un prénom ou pseudo."; return; }
+
+    document.getElementById("authSubmitBtn").classList.add("hidden");
+    document.getElementById("authLoading").classList.remove("hidden");
+
+    const done = () => {
+      document.getElementById("authSubmitBtn").classList.remove("hidden");
+      document.getElementById("authLoading").classList.add("hidden");
+    };
+
+    if (authMode === "signup") {
+      auth.createUserWithEmailAndPassword(email, password)
+        .then((cred) => db.collection("users").doc(cred.user.uid).set({ name, email }))
+        .catch((e) => { errBox.textContent = translateAuthError(e); done(); });
+    } else {
+      auth.signInWithEmailAndPassword(email, password)
+        .catch((e) => { errBox.textContent = translateAuthError(e); done(); });
+    }
+  }
+
+  function translateAuthError(e) {
+    const code = e.code || "";
+    if (code.includes("email-already-in-use")) return "Cet e-mail a déjà un compte, connecte-toi plutôt.";
+    if (code.includes("invalid-email")) return "Adresse e-mail invalide.";
+    if (code.includes("weak-password")) return "Mot de passe trop court (6 caractères min).";
+    if (code.includes("user-not-found") || code.includes("wrong-password") || code.includes("invalid-credential")) return "E-mail ou mot de passe incorrect.";
+    return "Une erreur est survenue, réessaie.";
+  }
+
+  function doLogout() {
+    if (challengesUnsub) { challengesUnsub(); challengesUnsub = null; }
+    auth.signOut();
+  }
+
+  auth.onAuthStateChanged((user) => {
+    currentUser = user;
+    if (user) {
+      document.getElementById("authScreen").classList.add("hidden");
+      document.getElementById("mainApp").classList.remove("hidden");
+      document.getElementById("fabBtn").classList.remove("hidden");
+      db.collection("users").doc(user.uid).get().then((doc) => {
+        currentUserName = doc.exists ? doc.data().name : (user.email || "").split("@")[0];
+        document.getElementById("userNameLabel").textContent = "👋 " + currentUserName;
+      });
+      load();
+      render();
+      listenChallenges();
+    } else {
+      document.getElementById("authScreen").classList.remove("hidden");
+      document.getElementById("mainApp").classList.add("hidden");
+      document.getElementById("fabBtn").classList.add("hidden");
+    }
+  });
+
+  // ---------- Tabs ----------
+  function switchTab(tab) {
+    activeTab = tab;
+    document.getElementById("tabBtnRoutines").classList.toggle("active", tab === "routines");
+    document.getElementById("tabBtnDefis").classList.toggle("active", tab === "defis");
+    document.getElementById("tabRoutines").classList.toggle("hidden", tab !== "routines");
+    document.getElementById("tabDefis").classList.toggle("hidden", tab !== "defis");
+  }
+
+  function fabAction() {
+    if (activeTab === "routines") openModal();
+    else openChallengeModal();
+  }
+
+  // ---------- Routines (locales, par téléphone) ----------
+  const EMOJIS = ["💪","🧘","🏃","📚","🥗","💧","🎸","✍️","🧹","😴","🎯","🌿"];
+  let routines = [];
+  let selectedEmoji = "💪";
+
+  function getToday() {
+    const d = new Date();
+    return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+  }
+
+  function daysBetween(a, b) {
+    const da = new Date(a), db_ = new Date(b);
+    return Math.round((db_ - da) / 86400000);
+  }
+
+  function load() {
+    try {
+      const raw = localStorage.getItem("mes-routines-v1");
+      if (raw) {
+        routines = JSON.parse(raw);
+        const today = getToday();
+        routines = routines.map(r => {
+          if (!r.lastChecked) return r;
+          const diff = daysBetween(r.lastChecked, today);
+          if (diff > 1 && !r.rewardUnlocked) return { ...r, streak: 0 };
+          return r;
+        });
+        save();
+        const notDone = routines.filter(r => !r.rewardUnlocked && r.lastChecked !== today);
+        if (notDone.length > 0) document.getElementById("alert").classList.remove("hidden");
+      }
+    } catch(e) {}
+  }
+
+  function save() {
+    localStorage.setItem("mes-routines-v1", JSON.stringify(routines));
+  }
+
+  function buildEmojiGrid() {
+    const grid = document.getElementById("emojiGrid");
+    grid.innerHTML = EMOJIS.map(e =>
+      `<button class="emoji-btn${e===selectedEmoji?' sel':''}" onclick="selectEmoji('${e}',this)">${e}</button>`
+    ).join("");
+  }
+
+  function selectEmoji(e, btn) {
+    selectedEmoji = e;
+    document.querySelectorAll("#emojiGrid .emoji-btn").forEach(b => b.classList.remove("sel"));
+    btn.classList.add("sel");
+  }
+
+  function checkForm() {
+    const ok = document.getElementById("inputName").value.trim() && document.getElementById("inputReward").value.trim();
+    document.getElementById("btnSave").disabled = !ok;
+  }
+
+  function openModal() {
+    selectedEmoji = "💪";
+    document.getElementById("inputName").value = "";
+    document.getElementById("inputDays").value = "7";
+    document.getElementById("inputReward").value = "";
+    document.getElementById("btnSave").disabled = true;
+    buildEmojiGrid();
+    document.getElementById("overlay").classList.remove("hidden");
+  }
+
+  function closeModal() {
+    document.getElementById("overlay").classList.add("hidden");
+  }
+
+  function addRoutine() {
+    const name = document.getElementById("inputName").value.trim();
+    const days = parseInt(document.getElementById("inputDays").value) || 7;
+    const reward = document.getElementById("inputReward").value.trim();
+    if (!name || !reward) return;
+    routines.push({ id: Date.now().toString(), name, emoji: selectedEmoji, goalDays: days, reward, streak: 0, bestStreak: 0, lastChecked: null, rewardUnlocked: false });
+    save();
+    closeModal();
+    render();
+  }
+
+  function checkRoutine(id) {
+    const today = getToday();
+    const i = routines.findIndex(r => r.id === id);
+    if (i === -1) return;
+    const r = routines[i];
+    if (r.lastChecked === today) return;
+    const newStreak = r.streak + 1;
+    const goalReached = newStreak >= r.goalDays && !r.rewardUnlocked;
+    routines[i] = { ...r, streak: newStreak, lastChecked: today, bestStreak: Math.max(r.bestStreak||0, newStreak), rewardUnlocked: r.rewardUnlocked || goalReached };
+    save();
+    if (goalReached) showCeleb(r.emoji + " " + r.name, "Ta récompense", "🎁 " + r.reward);
+    render();
+  }
+
+  function deleteRoutine(id) {
+    if (!confirm("Supprimer cette routine ?")) return;
+    routines = routines.filter(r => r.id !== id);
+    save();
+    render();
+  }
+
+  function resetRoutine(id) {
+    const i = routines.findIndex(r => r.id === id);
+    if (i === -1) return;
+    routines[i] = { ...routines[i], streak: 0, rewardUnlocked: false, lastChecked: null };
+    save();
+    render();
+  }
+
+  function showCeleb(name, rewardLabel, rewardValue) {
+    document.getElementById("celebName").textContent = name;
+    document.getElementById("celebRewardLabel").textContent = rewardLabel;
+    document.getElementById("celebReward").textContent = rewardValue;
+    document.getElementById("celebOverlay").classList.remove("hidden");
+  }
+
+  function closeCeleb() {
+    document.getElementById("celebOverlay").classList.add("hidden");
+  }
+
+  function render() {
+    const today = getToday();
+    const list = document.getElementById("list");
+
+    if (routines.length === 0) {
+      list.innerHTML = `<div class="empty"><div class="e">🌱</div><p>Aucune routine pour l'instant.<br>Appuie sur <strong>+</strong> pour en créer une !</p></div>`;
+      return;
+    }
+
+    list.innerHTML = routines.map(r => {
+      const doneToday = r.lastChecked === today;
+      const pct = Math.min((r.streak / r.goalDays) * 100, 100);
+      const cardClass = r.rewardUnlocked ? "card won" : doneToday ? "card done" : "card";
+
+      const checkBtn = r.rewardUnlocked
+        ? `<span class="won-badge">🏆 Gagné !</span>`
+        : `<button class="check-btn${doneToday?' checked':''}" onclick="checkRoutine('${r.id}')" title="${doneToday?'Déjà fait aujourd\'hui':'Cocher pour aujourd\'hui'}">${doneToday?'✓':'○'}</button>`;
+
+      const resetBtn = r.rewardUnlocked
+        ? `<button class="btn-sm" onclick="resetRoutine('${r.id}')">🔄 Recommencer</button>` : "";
+
+      return `
+        <div class="${cardClass}">
+          <div class="card-top">
+            <div class="card-left">
+              <span class="card-emoji">${r.emoji}</span>
+              <div>
+                <div class="card-name">${r.name}</div>
+                <div class="card-sub">Objectif : ${r.goalDays} jours consécutifs</div>
+              </div>
+            </div>
+            ${checkBtn}
+          </div>
+          <div class="prog-row">
+            <span class="prog-streak">🔥 ${r.streak} jour${r.streak>1?'s':''}</span>
+            <span class="prog-goal">${r.goalDays} jours</span>
+          </div>
+          <div class="prog-bg"><div class="prog-fill${r.rewardUnlocked?' green':''}" style="width:${pct}%"></div></div>
+          <div class="reward-box">
+            <span style="font-size:1.2rem">🎁</span>
+            <div>
+              <div class="reward-label">Récompense</div>
+              <div class="reward-value">${r.reward}</div>
+            </div>
+          </div>
+          <div class="card-footer">
+            ${resetBtn}
+            <button class="btn-sm del" onclick="deleteRoutine('${r.id}')">Supprimer</button>
+          </div>
+        </div>`;
+    }).join("");
+  }
+
+  // ---------- Défis (partagés via Firestore) ----------
+  const CHALLENGE_EMOJIS = ["🚭","🏃","🧘","💧","📵","🥗","😴","✍️","🚴","🧹","💪","🌿"];
+  let selectedChallengeEmoji = "🚭";
+
+  function buildChallengeEmojiGrid() {
+    const grid = document.getElementById("challengeEmojiGrid");
+    grid.innerHTML = CHALLENGE_EMOJIS.map(e =>
+      `<button class="emoji-btn${e===selectedChallengeEmoji?' sel':''}" onclick="selectChallengeEmoji('${e}',this)">${e}</button>`
+    ).join("");
+  }
+
+  function selectChallengeEmoji(e, btn) {
+    selectedChallengeEmoji = e;
+    document.querySelectorAll("#challengeEmojiGrid .emoji-btn").forEach(b => b.classList.remove("sel"));
+    btn.classList.add("sel");
+  }
+
+  function checkChallengeForm() {
+    const ok = document.getElementById("challengeName").value.trim();
+    document.getElementById("btnSaveChallenge").disabled = !ok;
+  }
+
+  function openChallengeModal() {
+    selectedChallengeEmoji = "🚭";
+    document.getElementById("challengeName").value = "";
+    document.getElementById("challengeDays").value = "30";
+    document.getElementById("btnSaveChallenge").disabled = true;
+    buildChallengeEmojiGrid();
+    document.getElementById("challengeOverlay").classList.remove("hidden");
+  }
+
+  function closeChallengeModal() {
+    document.getElementById("challengeOverlay").classList.add("hidden");
+  }
+
+  function createChallenge() {
+    const title = document.getElementById("challengeName").value.trim();
+    const days = parseInt(document.getElementById("challengeDays").value) || 30;
+    if (!title || !currentUser) return;
+    db.collection("challenges").add({
+      title,
+      emoji: selectedChallengeEmoji,
+      durationDays: days,
+      creatorUid: currentUser.uid,
+      creatorName: currentUserName,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      participants: {}
+    }).then(() => closeChallengeModal());
+  }
+
+  function listenChallenges() {
+    if (challengesUnsub) challengesUnsub();
+    challengesUnsub = db.collection("challenges").orderBy("createdAt", "desc")
+      .onSnapshot((snap) => {
+        latestChallenges = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderChallenges();
+      }, () => {
+        document.getElementById("challengesList").innerHTML =
+          `<div class="empty"><div class="e">⚠️</div><p>Impossible de charger les défis.<br>Vérifie ta connexion.</p></div>`;
+      });
+  }
+
+  function joinChallenge(id) {
+    if (!currentUser) return;
+    db.collection("challenges").doc(id).update({
+      [`participants.${currentUser.uid}`]: {
+        name: currentUserName, streak: 0, bestStreak: 0, lastChecked: null, completed: false, joinedAt: Date.now()
+      }
+    });
+  }
+
+  function checkChallenge(id) {
+    if (!currentUser) return;
+    const c = latestChallenges.find(x => x.id === id);
+    if (!c) return;
+    const me = (c.participants || {})[currentUser.uid];
+    if (!me) return;
+    const today = getToday();
+    if (me.lastChecked === today) return;
+    const newStreak = (me.streak || 0) + 1;
+    const justCompleted = newStreak >= c.durationDays && !me.completed;
+    db.collection("challenges").doc(id).update({
+      [`participants.${currentUser.uid}.streak`]: newStreak,
+      [`participants.${currentUser.uid}.bestStreak`]: Math.max(me.bestStreak || 0, newStreak),
+      [`participants.${currentUser.uid}.lastChecked`]: today,
+      [`participants.${currentUser.uid}.completed`]: me.completed || justCompleted
+    }).then(() => {
+      if (justCompleted) showCeleb(c.emoji + " " + c.title, "Défi relevé", "🎉 Bravo, objectif atteint !");
+    });
+  }
+
+  function renderChallenges() {
+    const list = document.getElementById("challengesList");
+    if (latestChallenges.length === 0) {
+      list.innerHTML = `<div class="empty"><div class="e">🎯</div><p>Aucun défi pour l'instant.<br>Appuie sur <strong>+</strong> pour en lancer un !</p></div>`;
+      return;
+    }
+    const today = getToday();
+    list.innerHTML = latestChallenges.map(c => {
+      const participants = c.participants || {};
+      const me = currentUser ? participants[currentUser.uid] : null;
+      const isJoined = !!me;
+      const doneToday = me && me.lastChecked === today;
+      const count = Object.keys(participants).length;
+
+      const arr = Object.values(participants).sort((a,b) => (b.streak||0) - (a.streak||0)).slice(0, 5);
+      const lbRows = arr.map((p, i) => {
+        const isMe = currentUser && p.name === currentUserName && me && p.streak === me.streak && i === arr.indexOf(p);
+        return `<div class="lb-row"><span class="lb-rank">${i+1}.</span><span class="lb-name${p.name===currentUserName?' me':''}">${p.name}</span><span class="lb-streak">🔥 ${p.streak||0}</span></div>`;
+      }).join("");
+
+      let actionHtml;
+      if (!isJoined) {
+        actionHtml = `<button class="btn-join" onclick="joinChallenge('${c.id}')">Rejoindre le défi</button>`;
+      } else {
+        const pct = Math.min(((me.streak||0) / c.durationDays) * 100, 100);
+        actionHtml = `
+          <div class="prog-row">
+            <span class="prog-streak">🔥 ${me.streak||0} jour${(me.streak||0)>1?'s':''}</span>
+            <span class="prog-goal">${c.durationDays} jours</span>
+          </div>
+          <div class="prog-bg"><div class="prog-fill${me.completed?' green':''}" style="width:${pct}%"></div></div>
+          ${me.completed
+            ? `<span class="won-badge">🏆 Défi relevé !</span>`
+            : `<button class="check-btn${doneToday?' checked':''}" onclick="checkChallenge('${c.id}')" style="width:100%;border-radius:12px;">${doneToday?'✓ Fait aujourd\'hui':'○ Cocher pour aujourd\'hui'}</button>`}
+        `;
+      }
+
+      return `
+        <div class="card${me && me.completed ? ' won' : (doneToday ? ' done' : '')}">
+          <div class="card-top">
+            <div class="card-left">
+              <span class="card-emoji">${c.emoji}</span>
+              <div>
+                <div class="card-name">${c.title}</div>
+                <div class="card-sub">${c.durationDays} jours · créé par ${c.creatorName} · ${count} participant${count>1?'s':''}</div>
+              </div>
+            </div>
+          </div>
+          ${actionHtml}
+          ${count > 0 ? `<div class="lb"><div class="lb-title">Classement</div>${lbRows}</div>` : ""}
+        </div>`;
+    }).join("");
+  }
+
+  // Date en français
+  const date = new Date().toLocaleDateString("fr-FR", { weekday:"long", day:"numeric", month:"long" });
+  document.getElementById("dateLabel").textContent = date.charAt(0).toUpperCase() + date.slice(1);
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js").catch(() => {});
+    });
+  }
+</script>
+</body>
+</html>
